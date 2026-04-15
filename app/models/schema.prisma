@@ -45,6 +45,8 @@ model User {
   requestCreator    Request[]          @relation("createdBy")
   requestApprover   Request[]          @relation("approvedBy")
 
+  identityCard IdentityCard[]
+
   @@map("users")
 }
 
@@ -194,4 +196,34 @@ model Request {
   approver  User? @relation("approvedBy", fields: [approvedBy], references: [id])
 
   @@map("requests")
+}
+
+model IdentityCard {
+  id        String    @id @default(uuid())
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime? @default(now()) @updatedAt @map("updated_at")
+
+  // Thông tin bóc tách từ OCR
+  idNumber     String    @unique @map("id_number") // Số CCCD
+  fullName     String    @map("full_name")       // Họ tên trên thẻ
+  dob          DateTime? @map("dob")             // Ngày sinh
+  gender       String?   @map("gender")          // Giới tính
+  address      String?   @map("address")         // Quê quán/Thường trú
+  issueDate    DateTime? @map("issue_date")      // Ngày cấp
+  issuePlace   String?   @map("issue_place")     // Nơi cấp
+
+  // Lưu trữ ảnh (Link Supabase Storage)
+  frontImageUrl String   @map("front_image_url") 
+  backImageUrl  String   @map("back_image_url")
+  faceVideoUrl  String?  @map("face_video_url")  // Nếu có quay video liveness check
+
+  // Trạng thái xác thực
+  status       String    @default("PENDING")     // PENDING, VERIFIED, REJECTED
+  rejectionReason String? @map("rejection_reason") // Lý do từ chối nếu STAFF duyệt tay
+
+  // Quan hệ với User
+  userId       String    @unique @map("user_id")
+  user      User   @relation(fields: [userId], references: [id])
+
+  @@map("identity_cards")
 }
